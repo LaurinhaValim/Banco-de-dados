@@ -1,0 +1,318 @@
+create table cliente 
+(
+	id int primary key, 
+	nome varchar(40),
+	email varchar(30)
+);
+
+
+create table genero 
+(
+	id int primary key, 
+	descricao varchar(20)
+);
+
+
+create table filme
+(
+	id int primary key, 
+    titulo varchar(60), 
+    preco real,
+	nota real, 
+	genero int,  
+	constraint fk_genero foreign key (genero) references genero(id)
+	on update cascade on delete set null
+); 
+
+
+create table artista
+(
+	id int primary key, 
+	nome varchar(40)
+);
+
+
+create table elenco
+(
+	filme int,
+	artista int,
+	primary key (filme,artista),
+	constraint fk_filme foreign key (filme) references filme(id),
+	constraint fk_artista foreign key (artista) references artista(id)
+);
+
+
+create table aluguel
+(
+	id int primary key,
+	cliente int,
+	filme int,
+	data date,
+	constraint fk_cliente foreign key (cliente) references cliente(id),
+	constraint fk_filme_aluguel foreign key (filme) references filme(id)
+);
+
+
+insert into cliente values
+(1,'Maria', 'maria@maria.com'),
+(2,'Joaquim', 'joaquim@joaquim.com'),
+(3,'José', 'jose@jose.com');
+
+insert into genero values
+(1,'Aventura'),
+(2,'Suspense'),
+(3,'Terror'),
+(4,'Comédia'),
+(5,'Drama');
+
+insert into filme values
+(1, 'Silêncio dos Inocentes', 15.00, 4.8,2),
+(2, 'O Poderoso Chefão I', 13.00, 4.9,5),
+(3, 'Star Wars - Episode IV', 18.00, 4.6,1),
+(4, 'Indiana Jones e a Última Cruzada', 14.00, 4.4,1),
+(5, 'Perfume de Mulher', 12.00, 4.5,5),
+(6, 'Um Crime de Mestre', 12.00, 4.6, 2),
+(7, 'Corra Que a Polícia vem Aí', 9.80, 4.3, 4),
+(8, 'Apertem os Cintos - O Piloto Sumiu', 9.00, 4.5, 4);	
+
+insert into artista values
+(1, 'Anthony Hopkins'),
+(2, 'Jodie Foster'),
+(3, 'Rosamund Pike'),
+(4, 'Marlon Brando'),
+(5, 'Al Pacino'),
+(6, 'Harrison Ford'),
+(7, 'Mark Hammil'),
+(8, 'Sean Connery'),
+(9, 'Leslie Nielsen');
+
+insert into elenco values
+(1,1), (1,2),
+(2,4), (2,5),
+(3,6), (3,7),
+(4,6), (4,8),
+(5,5),
+(6,1), (6,3),
+(7,9),
+(8,9);	
+
+insert into aluguel values
+(1, 1, 3, '2024-05-10'),
+(2, 1, 4, '2024-05-20'),
+(3, 1, 5, '2024-05-30'),
+(4, 1, 2, '2024-06-05'),	
+(5, 2, 1, '2024-05-05'),
+(6, 2, 2, '2024-05-15'),
+(7, 2, 6, '2024-05-20'),
+(8, 2, 3, '2024-04-10'),
+(9, 2, 5, '2024-04-15'),
+(10, 3, 7, '2024-06-01'),
+(11, 3, 8, '2024-06-07'),
+(12, 3, 2, '2024-06-07');
+
+
+
+-----------------------------------------------------------------
+--1 Listar todas as informações dos clientes, ordenando alfabeticamente pelo nome
+
+SELECT c.id AS cliente_id, c.nome, c.email
+FROM cliente AS c
+ORDER BY c.nome ASC;
+
+----------------------------------------------
+--2 Mostrar o preço mais caro, o preço mais barato e a média de preços dos filmes
+
+select MAX(c.preco) as filme_mais_caro, MIN(c.preco) as filme_mais_barato,AVG(c.preco) as media_dos_precos
+FROM filme as c;
+
+-------------------------------------------------------------------
+--3  Listar o título do filme com a descrição do seu respectivo gênero
+select f.titulo as filme, g.descricao as genero
+from filme as f inner join genero as g
+on f.genero = g.id;
+
+-------------------------------------------------------------------
+--4  Listar o título do filme com a descrição do seu respectivo gênero. 
+-- Considere somente os filmes cujo preço do aluguel seja superior a 10.00
+select f.titulo as filme, g.descricao as genero
+from filme as f inner join genero as g
+on f.genero = g.id
+where f.preco > 10.00;
+
+------------------------------------------------------------------
+--5  Listar o nome dos artistas do filme de id=2
+select f.titulo as filme, a.nome as artistas
+FROM artista as a
+inner join elenco as e on a.id =e.artista 
+inner join filme as f on f.id = e.filme
+where e.filme =2;
+
+------------------------------------------------------------------
+--6  Listar a quantidade de artistas, agrupada pelo título do filme
+select f.titulo as filme, count(e.artista) as numero_Deartistas
+from filme as f
+inner join elenco as e on f.id = e.filme
+group by f.titulo;
+
+-------------------------------------------------------------------
+--7  Listar o id do aluguel, o título do filme alugado, a descrição do gênero do filme, o nome do cliente e a 
+-- data em que foi realizado o aluguel.
+select a.id as codigo_aluguel, f.titulo as filme, g.descricao as genero, c.nome as nome_clientes, 
+a.data as data_aluguel
+FROM aluguel as a
+inner join filme as f on a.filme = f.id
+inner join genero as g on f.genero = g.id
+inner join cliente as c on a.cliente = c.id;
+
+-------------------------------------------------------------------
+-- 8  Listar o id do aluguel, o título do filme alugado, a descrição do gênero do filme, o nome do cliente e a 
+-- data em que foi realizado o aluguel. Entretanto, considere agora somente os aluguéis realizados a partir de 2024-05-01
+
+select a.id as codigo_aluguel, f.titulo as filme, g.descricao as genero, c.nome as nome_clientes, 
+a.data as data_aluguel
+FROM aluguel as a
+inner join filme as f on a.filme = f.id
+inner join genero as g on f.genero = g.id
+inner join cliente as c on a.cliente = c.id
+where a.data >= '2024-05-01';
+
+--------------------------------------------------------------------
+--9  Listar o id do aluguel, o título do filme alugado, a descrição do gênero do filme, o nome do cliente e a 
+--data em que foi realizado o aluguel. Porém, considere somente os filmes cuja nota seja igual ou maior  que 4.5
+
+select a.id as codigo_aluguel, f.titulo as filme, g.descricao as genero, c.nome as nome_clientes, 
+a.data as data_aluguel
+FROM aluguel as a
+inner join filme as f on a.filme = f.id
+inner join genero as g on f.genero = g.id
+inner join cliente as c on a.cliente = c.id
+where f.nota >= '4.5';
+
+---------------------------------------------------------------------
+--10 Listar a média das notas dos filmes, agrupada por gênero
+select g.descricao as genero, AVG(f.nota) as nota
+FROM filme as f
+inner join genero as g on f.genero = g.id
+group by g.descricao;
+
+---------------------------------------------------------------------
+--11 Listar a média dos preços dos filmes, agrupada por gênero
+select g.descricao as genero, AVG(f.preco) as media_preco
+FROM filme as f
+inner join genero as g on f.genero = g.id
+group by g.descricao;
+
+---------------------------------------------------------------------
+--12 Listar a média dos preços dos filmes, agrupada por gênero. Porém, só considere os gêneros de id=2 e  id=5. 
+
+select g.descricao as genero, AVG(f.preco) as media_preco
+FROM filme as f
+inner join genero as g on f.genero = g.id
+where g.id in (2, 5)
+group by g.descricao;
+
+----------------------------------------------------------------------
+-- 13 Listar a média dos preços dos filmes, agrupada por gênero. Porém, só considere os gêneros de id=2 e id=5. Mostre somente os resultados cuja média de preço seja maior que 12.00
+
+select g.descricao as genero, AVG(f.preco) as media_preco
+FROM filme as f
+inner join genero as g on f.genero = g.id
+where g.id in (2, 5)
+group by g.descricao
+having AVG(f.preco) > 12.00;
+
+----------------------------------------------------------------------
+--14 Listar a quantidade de filmes, agrupada pelo nome do artista
+select a.nome as artista, COUNT(e.filme) as quantidade_filmes
+FROM artista as a
+inner join elenco e on a.id = e.artista
+group by a.nome
+order by quantidade_filmes ASC;
+
+---------------------------------------------------------------------
+--15 Listar a quantidade de aluguéis, agrupada pelo nome do cliente
+select c.nome as cliente, COUNT(a.id) as quantidade_alugueis
+FROM aluguel as a
+inner join cliente as c on a.cliente = c.id
+group by c.nome
+order by quantidade_alugueis DESC;
+
+---------------------------------------------------------------------
+--16 Listar a quantidade de aluguéis, agrupada pelo título do filme
+select f.titulo as filme, COUNT(a.id) as quantidade_alugueis
+FROM aluguel as a
+inner join filme as f on a.filme =f.id
+group by f.titulo
+order by quantidade_alugueis DESC;
+
+
+---------------------------------------------------------------------
+--17 Listar o título dos filmes mais alugados
+select f.titulo as filme
+FROM aluguel as a
+inner join filme as f on a.filme =f.id
+group by f.titulo
+having count(a.id) = (
+	select MAX(qtd_alugueis)
+	from (
+		select count(a.id) as qtd_alugueis
+		from aluguel as a 
+		group by a.filme
+		) as sub
+);
+
+------------------------------------------------------------------
+--18 Listar o gênero dos filmes mais alugados
+select g.descricao as genero
+FROM genero as g
+inner join filme as f on f.genero = g.id
+inner join aluguel as a on a.filme =f.id
+group by g.descricao
+having count(a.id) = (
+	select MAX(qtd_alugueis)
+	from (
+		select count(a.id) as qtd_alugueis
+		from aluguel as a
+		inner join filme f on a.filme = f.id 
+		group by f.genero
+		) as sub
+);
+
+--------------------------------------------------------------------------
+-- 19 Listar os nomes dos artistas dos filmes mais alugados
+select a.nome as artista
+FROM artista as a 
+inner join elenco as e on a.id = e.artista
+inner join filme as f on e.filme = f.id
+inner join aluguel as al on f.id = al.filme
+group by a.nome
+having count(al.id) = (
+	select max(mais_alugado)
+	from(
+		select count(al2.id) as mais_alugado
+		from aluguel as al2
+		inner join filme as f2 on al2.filme = f2.id
+		group by f2.id
+	) as sub
+);
+
+--------------------------------------------------------------------
+--20 Listar o nome dos artistas que atuaram em mais filmes. Considere apenas filmes com nota > 4.5
+
+select a.nome as artista
+from artista as a
+inner join elenco as e on a.id = e.artista
+inner join filme as f on e.filme = f.id
+where f.nota > 4.5
+group by a.nome
+having count(f.id) = (
+		select max(mais_filmes)
+		from (
+		select count(f2.id) as mais_filmes
+		from artista as a2
+		inner join elenco as e2 on a2.id = e2.artista
+		inner join filme as f2 on e2.filme = f2.id
+		where f2.nota > 4.5
+		group by a2.nome
+		) as sub
+);
