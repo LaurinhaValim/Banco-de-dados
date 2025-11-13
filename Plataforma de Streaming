@@ -316,3 +316,92 @@ having count(f.id) = (
 		group by a2.nome
 		) as sub
 );
+
+-------------------------------------------------------------------
+-- 21 Listar o título dos filmes que possuem maior nota
+
+select f.titulo
+from filme f
+where f.nota = (select Max(f.nota)
+				from filme f);
+
+--------------------------------------------------------------------
+-- 22 Listar o título dos filmes que possuem preço maior que todos os preços dos filmes do gênero 2
+select f.titulo
+from filme f
+where f.preco > all (select f2.preco
+					from filme f2
+					where f2.genero = 2);
+
+---------------------------------------------------------------------
+-- 23 Listar o título dos filmes que possuem nota maior ou igual que todas as notas dos filmes do gênero 5
+select f.titulo
+from filme f
+where f.nota >= all (select f2.nota
+					from filme f2
+					where f2.genero = 5);
+
+---------------------------------------------------------------------
+-- 24 Listar o título dos filmes que possuem preço maior ou igual à média dos preços de todos os filmes
+select f.titulo
+from filme f
+where f.preco >= (select AVG(f2.preco)
+				from filme f2);
+
+---------------------------------------------------------------------
+-- 25 Listar o título dos filmes cujo preço é maior que o preço médio dos filmes alugados pelo cliente 1
+select f.titulo
+from filme f
+where f.preco >= (select AVG(f2.preco)
+				from filme f2
+				inner join aluguel as al on f2.id = al.filme
+				where al.cliente = 1);
+
+---------------------------------------------------------------------
+-- 26 Listar o título dos filmes que nunca foram alugados
+select f.titulo as Nunca_alugados
+from filme f 
+left join aluguel as al on f.id = al.filme
+where al.id is null;
+
+---------------------------------------------------------------------
+-- 27 Listar o título dos filmes que pertencem ao mesmo gênero do filme 'Star Wars - Episode IV
+select f.titulo
+from filme f
+inner join genero as g on f.genero = g.id
+where f.genero = (select f2.genero
+			from filme f2
+			where f2.titulo = 'Star Wars - Episode IV');
+
+---------------------------------------------------------------------
+-- 28 Listar a descrição do gênero que não possui nenhum filme associado a ele
+
+select g.descricao
+from genero as g
+left join filme as f on g.id = f.genero 
+where f.genero is null;
+
+----------------------------------------------------------------------
+-- 29 Listar o nome do cliente que alugou o filme com o maior preço de aluguel
+
+select c.nome
+from cliente as c
+inner join aluguel as al on c.id = al.cliente
+inner join filme as f on al.filme = f.id
+where f.preco = (select MAX(f2.preco)
+				from filme as f2);
+
+---------------------------------------------------------------------
+-- 30 Listar o nome do cliente que mais alugou filmes
+
+select c.nome
+from cliente as c
+inner join aluguel as al on c.id = al.cliente
+group by c.nome
+having COUNT(al.id) = (
+					select MAX(cliente_mais)
+					FROM(select count(al2.id) as cliente_mais
+					from aluguel as al2
+					group by al2.cliente
+					)as sub
+					);
